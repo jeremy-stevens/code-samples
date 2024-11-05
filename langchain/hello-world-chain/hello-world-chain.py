@@ -1,16 +1,26 @@
-import os
-from langchain.llms import OpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
+from dotenv import dotenv_values
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 
-# Define your prompt template
-prompt = PromptTemplate(input_variables=["question"], template="What is {question}?")
 
-# Initialize the LLM with OpenAI API
-api_key = os.getenv('OPENAI_API_KEY')
-llm = OpenAI(api_key=api_key)
-chain = LLMChain(llm=llm, prompt=prompt)
+config = dotenv_values(".env")
 
-# Run the chain
-response = chain.run("the capital of France")
-print(response)
+system_template = "Translate the following into {language}:"
+user_template= "{text}"
+prompt_template = ChatPromptTemplate.from_messages(
+    [("system", system_template), ("user", user_template)]
+)
+
+print(prompt_template)
+
+api_key = config["OPENAI_API_KEY"]
+modelName = config["OPENAI_MODEL_NAME"]
+model = ChatOpenAI(model=modelName, openai_api_key=api_key)
+
+parser = StrOutputParser()
+
+llm = prompt_template | model | parser
+
+# response = llm.invoke({"language": "italian", "text": "Hello, World!"})
+# print(response)
